@@ -1,0 +1,58 @@
+# docker-compose.yml  
+# ================================
+# Three-service RAG stack: backend (FastAPI) + frontend (Streamlit) + ollama
+#
+# Run:   docker-compose up --build
+# Model: docker-compose exec ollama ollama pull llama3.2:1b
+# Stop:  docker-compose down
+
+
+
+services:
+
+  # ── Backend: FastAPI RAG API ───────────────────────────────────────────
+  backend:
+    # TODO: build from ./backend
+    build: ./backend
+
+    env_file:
+      - .env
+
+    ports:
+      - "8000:8000"
+      
+    
+    volumes:
+      - chroma_data:/app/rag_db
+      - ollama_models:/root/.ollama
+    depends_on:
+      - ollama
+
+  # ── Frontend: Streamlit UI ─────────────────────────────────────────────
+  frontend:
+   
+    build: ./frontend
+    ports:
+      - "8501:8501"
+      
+    environment:
+      - BACKEND_URL=http://backend:8000
+      
+    depends_on:
+      - backend
+
+  # ── Ollama: local LLM runtime ──────────────────────────────────────────
+  ollama:
+    image: ollama/ollama
+    
+    ports:
+      - "11434:11434"
+      
+    volumes:
+      - ollama_models:/root/.ollama
+      
+
+# ── Named volumes ──────────────────────────────────────────────────────────
+volumes:
+  chroma_data:
+  ollama_models:
