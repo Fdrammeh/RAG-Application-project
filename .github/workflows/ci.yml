@@ -1,0 +1,84 @@
+# .github/workflows/ci.yml  (STARTER)
+# =====================================
+# GitHub Actions CI pipeline for the RAG project.
+# Runs on every push and pull request to main.
+#
+# To activate: push this file to your GitHub repository.
+# View results in: Repository → Actions tab
+
+name: RAG Application CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Job 1: Run Python tests ──────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./rag-app/backend
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest httpx
+
+      - name: Run tests
+        run: pytest tests/ -v --tb=short
+        env:
+          # Provide dummy env vars so config.py doesn't fail in CI
+          OLLAMA_URL: http://localhost:11434
+          CHROMA_PATH: ./test_chroma
+
+  # ── Job 2: Verify Docker builds ──────────────────────────────────────
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build backend image
+
+        run: docker build -t rag-backend ./rag-app/backend
+
+      - name: Build frontend image
+
+        run: docker build -t rag-frontend ./rag-app/frontend
+
+      - name: Verify images exist
+        run: |
+          docker image inspect rag-backend
+          docker image inspect rag-frontend
+          echo "Both Docker images were created successfully."
+
+  # ── Job 3: Lint ───────────────────────────────────────────────────────
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
+
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.11"
+
+  #     - name: Check code formatting
+  #       run: |
+  #         pip install ruff
+  #
+  #

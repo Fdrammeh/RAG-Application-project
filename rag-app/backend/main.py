@@ -247,6 +247,9 @@ def ingest():
         message=f"Ingested {len(documents)} chunks from {DOCS_DIR}."
     )
 
+@app.get("/")
+def root():
+    return {"message": "RAG API is running"}
 
 @app.get("/stats")
 def stats():
