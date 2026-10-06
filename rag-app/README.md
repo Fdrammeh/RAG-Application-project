@@ -13,3 +13,9 @@ Ollama: http://localhost:11434
 Test the Application
 Check health:
 curl http://localhost:8000/health
+
+API tests are located in backend/tests/test_api.py.
+Run locally:
+cd backend
+pytest tests/ -v
+The tests verify /, /health, and /stats.
